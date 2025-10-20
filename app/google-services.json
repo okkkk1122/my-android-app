@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "867719735521",
+    "project_id": "gymway-d48c0",
+    "storage_bucket": "gymway-d48c0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:867719735521:android:a24044a631b12091552fa0",
+        "android_client_info": {
+          "package_name": "com.gymway.gymway"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAMkQQM-gZl_EPvOOq6VbIy3enwxFUrm30"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
