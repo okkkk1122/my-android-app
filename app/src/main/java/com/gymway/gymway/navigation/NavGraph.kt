@@ -12,6 +12,8 @@ import androidx.navigation.compose.composable
 import com.gymway.auth.AuthViewModel
 import com.gymway.auth.ui.LoginScreen
 import com.gymway.auth.ui.RegisterScreen
+import com.gymway.gymway.ui.AthleteHomeScreen
+import com.gymway.gymway.ui.CoachHomeScreen
 import com.gymway.gymway.ui.EmailVerificationScreen
 import com.gymway.gymway.ui.HomeScreen
 
@@ -20,6 +22,8 @@ object Routes {
     const val REGISTER = "register"
     const val EMAIL_VERIFICATION = "email_verification"
     const val HOME = "home"
+    const val ATHLETE_HOME = "athlete_home"
+    const val COACH_HOME = "coach_home"
 }
 
 @Composable
@@ -29,20 +33,44 @@ fun AppNavGraph(
 ) {
     val authViewModel: AuthViewModel = viewModel()
     val authState by authViewModel.uiState.collectAsStateWithLifecycle()
+    val currentUser by authViewModel.currentUser.collectAsStateWithLifecycle()
 
-    // مدیریت state تغییرات authentication
-    LaunchedEffect(authState) {
+    // مدیریت state تغییرات authentication و نقش کاربر
+    LaunchedEffect(authState, currentUser) {
         when (authState) {
             is com.gymway.auth.AuthUiState.Success -> {
-                // اگر کاربر لاگین شده و در صفحه auth هست، به home هدایت شود
                 val currentRoute = navController.currentBackStackEntry?.destination?.route
-                if (currentRoute == Routes.LOGIN || currentRoute == Routes.REGISTER) {
-                    navController.navigate(Routes.HOME) {
-                        popUpTo(currentRoute!!) { inclusive = true }
+
+                // اگر کاربر لاگین شده و در صفحه auth هست، به صفحه مناسب نقش هدایت شود
+                if (currentRoute == Routes.LOGIN || currentRoute == Routes.REGISTER || currentRoute == Routes.EMAIL_VERIFICATION) {
+                    when {
+                        currentUser?.isAthlete == true -> {
+                            navController.navigate(Routes.ATHLETE_HOME) {
+                                popUpTo(currentRoute!!) { inclusive = true }
+                            }
+                        }
+                        currentUser?.isCoach == true -> {
+                            navController.navigate(Routes.COACH_HOME) {
+                                popUpTo(currentRoute!!) { inclusive = true }
+                            }
+                        }
+                        else -> {
+                            // اگر نقش مشخص نیست، به صفحه اصلی معمولی هدایت شود
+                            navController.navigate(Routes.HOME) {
+                                popUpTo(currentRoute!!) { inclusive = true }
+                            }
+                        }
                     }
                 }
             }
             else -> {}
+        }
+    }
+
+    // Load current user on app start
+    LaunchedEffect(Unit) {
+        if (authViewModel.getCurrentUser() != null) {
+            authViewModel.loadCurrentUser()
         }
     }
 
@@ -60,10 +88,8 @@ fun AppNavGraph(
                         restoreState = true
                     }
                 },
-                onLoginSuccess = { uid ->
-                    navController.navigate(Routes.HOME) {
-                        popUpTo(Routes.LOGIN) { inclusive = true }
-                    }
+                onLoginSuccess = {
+                    // Navigation handled by LaunchedEffect
                 },
                 onNavigateToEmailVerification = {
                     navController.navigate(Routes.EMAIL_VERIFICATION) {
@@ -94,9 +120,7 @@ fun AppNavGraph(
             EmailVerificationScreen(
                 authViewModel = authViewModel,
                 onVerified = {
-                    navController.navigate(Routes.HOME) {
-                        popUpTo(Routes.EMAIL_VERIFICATION) { inclusive = true }
-                    }
+                    // Navigation handled by LaunchedEffect
                 },
                 onNavigateToLogin = {
                     navController.navigate(Routes.LOGIN) {
@@ -116,5 +140,32 @@ fun AppNavGraph(
                 }
             )
         }
+
+        composable(Routes.ATHLETE_HOME) {
+            AthleteHomeScreen(
+                currentUser = currentUser,
+                onLogout = {
+                    authViewModel.signOut()
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(Routes.ATHLETE_HOME) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Routes.COACH_HOME) {
+            CoachHomeScreen(
+                currentUser = currentUser,
+                onLogout = {
+                    authViewModel.signOut()
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(Routes.COACH_HOME) { inclusive = true }
+                    }
+                }
+            )
+        }
     }
 }
+
+// Extension function to get current user
+fun AuthViewModel.getCurrentUser() = currentUser.value

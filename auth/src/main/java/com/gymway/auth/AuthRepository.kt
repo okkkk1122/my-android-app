@@ -5,6 +5,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import android.util.Log
 import com.google.firebase.Timestamp
+import com.gymway.auth.model.User
 
 class AuthRepository {
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
@@ -25,21 +26,17 @@ class AuthRepository {
             val uid = user.uid
             Log.d("AuthRepository", "✅ User created in Auth: $uid")
 
-            // 2. Save user data to Firestore (optional)
-            try {
-                val userData = hashMapOf<String, Any>(
-                    "uid" to uid,
-                    "email" to email,
-                    "displayName" to displayName,
-                    "role" to role,
-                    "emailVerified" to false,
-                    "createdAt" to Timestamp.now()
-                )
-                firestore.collection("users").document(uid).set(userData).await()
-                Log.d("AuthRepository", "✅ User data saved to Firestore")
-            } catch (e: Exception) {
-                Log.w("AuthRepository", "⚠️ Firestore save failed but continuing: ${e.message}")
-            }
+            // 2. Save user data to Firestore
+            val userData = hashMapOf<String, Any>(
+                "uid" to uid,
+                "email" to email,
+                "displayName" to displayName,
+                "role" to role,
+                "emailVerified" to false,
+                "createdAt" to Timestamp.now()
+            )
+            firestore.collection("users").document(uid).set(userData).await()
+            Log.d("AuthRepository", "✅ User data saved to Firestore")
 
             // 3. Send email verification
             user.sendEmailVerification().await()
@@ -70,6 +67,43 @@ class AuthRepository {
 
         } catch (e: Exception) {
             Log.e("AuthRepository", "❌ Login failed: ${e.message}", e)
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getUserData(uid: String): Result<User> {
+        return try {
+            Log.d("AuthRepository", "📥 Fetching user data for: $uid")
+
+            val document = firestore.collection("users").document(uid).get().await()
+
+            if (document.exists()) {
+                val user = User(
+                    uid = document.getString("uid") ?: "",
+                    email = document.getString("email") ?: "",
+                    displayName = document.getString("displayName") ?: "",
+                    role = document.getString("role") ?: "athlete",
+                    emailVerified = document.getBoolean("emailVerified") ?: false,
+                    createdAt = document.getTimestamp("createdAt")
+                )
+                Log.d("AuthRepository", "✅ User data loaded: ${user.displayName} - ${user.role}")
+                Result.success(user)
+            } else {
+                Log.w("AuthRepository", "⚠️ User document not found in Firestore")
+                Result.failure(Exception("User data not found"))
+            }
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "❌ Failed to load user data", e)
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getCurrentUserData(): Result<User> {
+        return try {
+            val currentUser = auth.currentUser ?: throw Exception("No user logged in")
+            getUserData(currentUser.uid)
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "❌ Failed to get current user data", e)
             Result.failure(e)
         }
     }
