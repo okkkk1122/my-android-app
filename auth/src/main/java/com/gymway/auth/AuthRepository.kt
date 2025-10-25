@@ -27,11 +27,15 @@ class AuthRepository {
             Log.d("AuthRepository", "✅ User created in Auth: $uid")
 
             // 2. Save user data to Firestore
+            // در registerWithEmail این تغییر رو بده:
+
             val userData = hashMapOf<String, Any>(
                 "uid" to uid,
                 "email" to email,
                 "displayName" to displayName,
                 "role" to role,
+                "age" to 0,  // مقدار پیش‌فرض
+                "gender" to "",  // مقدار پیش‌فرض
                 "emailVerified" to false,
                 "createdAt" to Timestamp.now()
             )
@@ -71,6 +75,8 @@ class AuthRepository {
         }
     }
 
+    // در متد getUserData در AuthRepository.kt این تغییر رو بده:
+
     suspend fun getUserData(uid: String): Result<User> {
         return try {
             Log.d("AuthRepository", "📥 Fetching user data for: $uid")
@@ -83,6 +89,8 @@ class AuthRepository {
                     email = document.getString("email") ?: "",
                     displayName = document.getString("displayName") ?: "",
                     role = document.getString("role") ?: "athlete",
+                    age = document.getLong("age")?.toInt(),  // اضافه شد
+                    gender = document.getString("gender"),  // اضافه شد
                     emailVerified = document.getBoolean("emailVerified") ?: false,
                     createdAt = document.getTimestamp("createdAt")
                 )
@@ -97,7 +105,6 @@ class AuthRepository {
             Result.failure(e)
         }
     }
-
     suspend fun getCurrentUserData(): Result<User> {
         return try {
             val currentUser = auth.currentUser ?: throw Exception("No user logged in")
@@ -140,6 +147,21 @@ class AuthRepository {
             Log.d("AuthRepository", "✅ User signed out")
         } catch (e: Exception) {
             Log.e("AuthRepository", "❌ Sign out failed", e)
+        }
+    }
+    // به AuthRepository.kt این متد رو اضافه کن:
+
+    suspend fun updateUserProfile(userId: String, updatedData: Map<String, Any>): Result<Boolean> {
+        return try {
+            Log.d("AuthRepository", "📝 Updating user profile for: $userId")
+
+            firestore.collection("users").document(userId).update(updatedData).await()
+
+            Log.d("AuthRepository", "✅ User profile updated successfully")
+            Result.success(true)
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "❌ Failed to update user profile", e)
+            Result.failure(e)
         }
     }
 }

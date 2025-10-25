@@ -1,3 +1,4 @@
+// User.kt
 package com.gymway.auth.model
 
 import com.google.firebase.Timestamp
@@ -7,6 +8,8 @@ data class User(
     val email: String = "",
     val displayName: String = "",
     val role: String = "athlete",
+    val age: Int? = null,  // اضافه شد
+    val gender: String? = null,  // اضافه شد
     val emailVerified: Boolean = false,
     val createdAt: Timestamp? = null
 ) {

@@ -2,7 +2,7 @@ package com.gymway.gymway.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -12,7 +12,10 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(onLogout: () -> Unit) {
+fun HomeScreen(
+    onLogout: () -> Unit,
+    onNavigateToProfile: () -> Unit
+) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -23,16 +26,28 @@ fun HomeScreen(onLogout: () -> Unit) {
             )
         },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = onLogout,
-                icon = {
-                    Icon(
-                        Icons.Default.Person,
-                        contentDescription = "خروج"
-                    )
-                },
-                text = { Text("خروج از حساب") }
-            )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // دکمه پروفایل
+                FloatingActionButton(
+                    onClick = onNavigateToProfile
+                ) {
+                    Icon(Icons.Default.Person, contentDescription = "پروفایل")
+                }
+
+                // دکمه خروج
+                ExtendedFloatingActionButton(
+                    onClick = onLogout,
+                    icon = {
+                        Icon(
+                            Icons.Default.ExitToApp,
+                            contentDescription = "خروج"
+                        )
+                    },
+                    text = { Text("خروج از حساب") }
+                )
+            }
         }
     ) { padding ->
         Column(
@@ -73,6 +88,15 @@ fun HomeScreen(onLogout: () -> Unit) {
                 text = "اکنون می‌توانید از تمام امکانات GymWay استفاده کنید.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.outline,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Text(
+                text = "لطفاً برای تکمیل پروفایل خود، روی دکمه پروفایل کلیک کنید.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary,
                 textAlign = TextAlign.Center
             )
         }

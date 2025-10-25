@@ -16,6 +16,7 @@ import com.gymway.gymway.ui.AthleteHomeScreen
 import com.gymway.gymway.ui.CoachHomeScreen
 import com.gymway.gymway.ui.EmailVerificationScreen
 import com.gymway.gymway.ui.HomeScreen
+import com.gymway.gymway.ui.ProfileScreen
 
 object Routes {
     const val LOGIN = "login"
@@ -24,6 +25,7 @@ object Routes {
     const val HOME = "home"
     const val ATHLETE_HOME = "athlete_home"
     const val COACH_HOME = "coach_home"
+    const val PROFILE = "profile"
 }
 
 @Composable
@@ -61,6 +63,39 @@ fun AppNavGraph(
                             }
                         }
                     }
+                }
+            }
+            else -> {}
+        }
+    }
+
+    // مدیریت state تغییرات پروفایل
+    val profileState by authViewModel.profileState.collectAsStateWithLifecycle()
+    LaunchedEffect(profileState) {
+        when (profileState) {
+            is com.gymway.auth.ProfileUiState.Success -> {
+                // بعد از آپدیت موفق پروفایل، به صفحه خانه مناسب برگرد
+                val currentRoute = navController.currentBackStackEntry?.destination?.route
+                if (currentRoute == Routes.PROFILE) {
+                    when {
+                        currentUser?.isAthlete == true -> {
+                            navController.navigate(Routes.ATHLETE_HOME) {
+                                popUpTo(Routes.PROFILE) { inclusive = true }
+                            }
+                        }
+                        currentUser?.isCoach == true -> {
+                            navController.navigate(Routes.COACH_HOME) {
+                                popUpTo(Routes.PROFILE) { inclusive = true }
+                            }
+                        }
+                        else -> {
+                            navController.navigate(Routes.HOME) {
+                                popUpTo(Routes.PROFILE) { inclusive = true }
+                            }
+                        }
+                    }
+                    // Reset profile state after navigation
+                    authViewModel.resetProfileState()
                 }
             }
             else -> {}
@@ -137,6 +172,9 @@ fun AppNavGraph(
                     navController.navigate(Routes.LOGIN) {
                         popUpTo(Routes.HOME) { inclusive = true }
                     }
+                },
+                onNavigateToProfile = {
+                    navController.navigate(Routes.PROFILE)
                 }
             )
         }
@@ -149,6 +187,9 @@ fun AppNavGraph(
                     navController.navigate(Routes.LOGIN) {
                         popUpTo(Routes.ATHLETE_HOME) { inclusive = true }
                     }
+                },
+                onNavigateToProfile = {
+                    navController.navigate(Routes.PROFILE)
                 }
             )
         }
@@ -160,6 +201,35 @@ fun AppNavGraph(
                     authViewModel.signOut()
                     navController.navigate(Routes.LOGIN) {
                         popUpTo(Routes.COACH_HOME) { inclusive = true }
+                    }
+                },
+                onNavigateToProfile = {
+                    navController.navigate(Routes.PROFILE)
+                }
+            )
+        }
+
+        composable(Routes.PROFILE) {
+            ProfileScreen(
+                authViewModel = authViewModel,
+                onBack = {
+                    // بر اساس نقش کاربر به صفحه مناسب برگرد
+                    when {
+                        currentUser?.isAthlete == true -> {
+                            navController.navigate(Routes.ATHLETE_HOME) {
+                                popUpTo(Routes.PROFILE) { inclusive = true }
+                            }
+                        }
+                        currentUser?.isCoach == true -> {
+                            navController.navigate(Routes.COACH_HOME) {
+                                popUpTo(Routes.PROFILE) { inclusive = true }
+                            }
+                        }
+                        else -> {
+                            navController.navigate(Routes.HOME) {
+                                popUpTo(Routes.PROFILE) { inclusive = true }
+                            }
+                        }
                     }
                 }
             )

@@ -15,7 +15,8 @@ import com.gymway.auth.model.User
 @Composable
 fun CoachHomeScreen(
     currentUser: User?,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onNavigateToProfile: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -31,16 +32,28 @@ fun CoachHomeScreen(
             )
         },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = onLogout,
-                icon = {
-                    Icon(
-                        Icons.Default.ExitToApp,
-                        contentDescription = "خروج"
-                    )
-                },
-                text = { Text("خروج از حساب") }
-            )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // دکمه پروفایل
+                FloatingActionButton(
+                    onClick = onNavigateToProfile
+                ) {
+                    Icon(Icons.Default.Person, contentDescription = "پروفایل")
+                }
+
+                // دکمه خروج
+                ExtendedFloatingActionButton(
+                    onClick = onLogout,
+                    icon = {
+                        Icon(
+                            Icons.Default.ExitToApp,
+                            contentDescription = "خروج"
+                        )
+                    },
+                    text = { Text("خروج") }
+                )
+            }
         }
     ) { padding ->
         Column(
@@ -75,7 +88,16 @@ fun CoachHomeScreen(
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // نمایش نقش کاربر
+            FilterChip(
+                selected = true,
+                onClick = { },
+                label = { Text("مربی") }
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
 
             // امکانات مخصوص مربیان
             Card(
@@ -90,13 +112,21 @@ fun CoachHomeScreen(
                     Icon(
                         Icons.Default.Group,
                         contentDescription = "شاگردان",
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(40.dp),
+                        tint = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.width(16.dp))
-                    Text(
-                        text = "مدیریت شاگردان",
-                        style = MaterialTheme.typography.titleMedium
-                    )
+                    Column {
+                        Text(
+                            text = "مدیریت شاگردان",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = "لیست و اطلاعات شاگردان",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.outline
+                        )
+                    }
                 }
             }
 
@@ -114,13 +144,53 @@ fun CoachHomeScreen(
                     Icon(
                         Icons.Default.Create,
                         contentDescription = "برنامه‌ها",
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(40.dp),
+                        tint = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.width(16.dp))
-                    Text(
-                        text = "طراحی برنامه تمرینی",
-                        style = MaterialTheme.typography.titleMedium
+                    Column {
+                        Text(
+                            text = "طراحی برنامه تمرینی",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = "ساخت برنامه برای شاگردان",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.outline
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Card(
+                onClick = { /* TODO: Navigate to analytics */ },
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(4.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Default.Analytics,
+                        contentDescription = "آنالیتیکس",
+                        modifier = Modifier.size(40.dp),
+                        tint = MaterialTheme.colorScheme.primary
                     )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column {
+                        Text(
+                            text = "آنالیز پیشرفت",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = "بررسی عملکرد شاگردان",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.outline
+                        )
+                    }
                 }
             }
         }

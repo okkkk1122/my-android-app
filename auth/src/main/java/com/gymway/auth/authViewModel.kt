@@ -112,4 +112,34 @@ class AuthViewModel : ViewModel() {
     fun resetState() {
         _uiState.value = AuthUiState.Idle
     }
+    // به AuthViewModel.kt این state و متدها رو اضافه کن:
+
+    private val _profileState = MutableStateFlow<ProfileUiState>(ProfileUiState.Idle)
+    val profileState: StateFlow<ProfileUiState> = _profileState
+
+    fun updateUserProfile(updatedData: Map<String, Any>) {
+        viewModelScope.launch {
+            _profileState.value = ProfileUiState.Loading
+
+            val currentUserId = _currentUser.value?.uid ?: ""
+            if (currentUserId.isEmpty()) {
+                _profileState.value = ProfileUiState.Error("کاربر لاگین نیست")
+                return@launch
+            }
+
+            val result = repository.updateUserProfile(currentUserId, updatedData)
+            if (result.isSuccess) {
+                // بعد از آپدیت موفق، اطلاعات کاربر رو دوباره لود کن
+                loadCurrentUser()
+                _profileState.value = ProfileUiState.Success
+            } else {
+                val errorMessage = result.exceptionOrNull()?.message ?: "خطا در بروزرسانی پروفایل"
+                _profileState.value = ProfileUiState.Error(errorMessage)
+            }
+        }
+    }
+
+    fun resetProfileState() {
+        _profileState.value = ProfileUiState.Idle
+    }
 }
