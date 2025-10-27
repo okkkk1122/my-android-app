@@ -19,3 +19,4 @@ rootProject.name = "Gymway"
 include(":app")
 include(":core_ui")
 include(":auth")
+include(":workout")

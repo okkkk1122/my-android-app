@@ -16,7 +16,8 @@ import com.gymway.auth.model.User
 fun AthleteHomeScreen(
     currentUser: User?,
     onLogout: () -> Unit,
-    onNavigateToProfile: () -> Unit
+    onNavigateToProfile: () -> Unit,
+    onNavigateToWorkout: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -35,14 +36,12 @@ fun AthleteHomeScreen(
             Column(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // دکمه پروفایل
                 FloatingActionButton(
                     onClick = onNavigateToProfile
                 ) {
                     Icon(Icons.Default.Person, contentDescription = "پروفایل")
                 }
 
-                // دکمه خروج
                 ExtendedFloatingActionButton(
                     onClick = onLogout,
                     icon = {
@@ -90,7 +89,6 @@ fun AthleteHomeScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // نمایش نقش کاربر
             FilterChip(
                 selected = true,
                 onClick = { },
@@ -99,9 +97,8 @@ fun AthleteHomeScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // امکانات مخصوص ورزشکاران
             Card(
-                onClick = { /* TODO: Navigate to workout plan */ },
+                onClick = onNavigateToWorkout,
                 modifier = Modifier.fillMaxWidth(),
                 elevation = CardDefaults.cardElevation(4.dp)
             ) {
@@ -118,11 +115,11 @@ fun AthleteHomeScreen(
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
                         Text(
-                            text = "برنامه تمرینی من",
+                            text = "برنامه‌های تمرینی",
                             style = MaterialTheme.typography.titleMedium
                         )
                         Text(
-                            text = "مشاهده برنامه روزانه",
+                            text = "مشاهده و مدیریت تمرینات",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.outline
                         )
@@ -133,7 +130,7 @@ fun AthleteHomeScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             Card(
-                onClick = { /* TODO: Navigate to progress */ },
+                onClick = { /* TODO */ },
                 modifier = Modifier.fillMaxWidth(),
                 elevation = CardDefaults.cardElevation(4.dp)
             ) {
@@ -165,7 +162,7 @@ fun AthleteHomeScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             Card(
-                onClick = { /* TODO: Navigate to nutrition */ },
+                onClick = { /* TODO */ },
                 modifier = Modifier.fillMaxWidth(),
                 elevation = CardDefaults.cardElevation(4.dp)
             ) {
