@@ -1,6 +1,5 @@
 package com.gymway.workout.data.model
 
-import com.google.firebase.Timestamp
 import com.google.firebase.firestore.PropertyName
 
 data class WorkoutPlan(
@@ -11,15 +10,15 @@ data class WorkoutPlan(
     @get:PropertyName("duration") val duration: Int = 60,
     @get:PropertyName("difficulty") val difficulty: String = "beginner",
     @get:PropertyName("createdBy") val createdBy: String = "",
-    @get:PropertyName("assignedTo") val assignedTo: String = "",
-    @get:PropertyName("assignedAt") val assignedAt: Timestamp? = null,
-    @get:PropertyName("isCompleted") val isCompleted: Boolean = false,
-    @get:PropertyName("completedAt") val completedAt: Timestamp? = null
+    @get:PropertyName("assignedTo") val assignedTo: String = ""
 ) {
+    // Propertyهای computed - بدون مشکل Firestore
     val progress: Float
-        get() {
-            if (exercises.isEmpty()) return 0f
+        get() = if (exercises.isEmpty()) 0f else {
             val completed = exercises.count { it.isCompleted }
-            return completed.toFloat() / exercises.size
+            completed.toFloat() / exercises.size
         }
+
+    val isCompleted: Boolean
+        get() = exercises.isNotEmpty() && exercises.all { it.isCompleted }
 }

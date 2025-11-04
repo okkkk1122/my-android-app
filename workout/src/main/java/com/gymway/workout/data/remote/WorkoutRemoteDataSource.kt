@@ -1,3 +1,4 @@
+
 package com.gymway.workout.data.remote
 
 import com.google.firebase.firestore.FirebaseFirestore
@@ -33,6 +34,42 @@ class WorkoutRemoteDataSource @Inject constructor() {
             println("💥 [RemoteDataSource] خطا در دریافت از Firebase: ${e.message}")
             e.printStackTrace()
             throw Exception("خطا در دریافت داده از سرور: ${e.message}")
+        }
+    }
+
+    // دریافت برنامه‌های یک مربی خاص
+    suspend fun getWorkoutPlansByCoach(coachId: String): List<WorkoutPlan> {
+        println("🌐 [RemoteDataSource] دریافت برنامه‌های مربی: $coachId")
+        return try {
+            val snapshot = workoutPlansCollection
+                .whereEqualTo("createdBy", coachId)
+                .get()
+                .await()
+
+            println("📡 [RemoteDataSource] ${snapshot.documents.size} برنامه برای مربی $coachId")
+
+            val plans = snapshot.documents.mapNotNull { document ->
+                document.toObject(WorkoutPlan::class.java)?.copy(id = document.id)
+            }
+            println("✅ [RemoteDataSource] ${plans.size} برنامه برای مربی دریافت شد")
+            plans
+        } catch (e: Exception) {
+            println("💥 [RemoteDataSource] خطا در دریافت برنامه‌های مربی: ${e.message}")
+            throw e
+        }
+    }
+
+    // ذخیره برنامه جدید
+    suspend fun saveWorkoutPlan(workoutPlan: WorkoutPlan) {
+        println("🌐 [RemoteDataSource] ذخیره برنامه جدید: ${workoutPlan.title}")
+        try {
+            workoutPlansCollection.document(workoutPlan.id)
+                .set(workoutPlan)
+                .await()
+            println("✅ [RemoteDataSource] برنامه ${workoutPlan.title} در Firebase ذخیره شد")
+        } catch (e: Exception) {
+            println("💥 [RemoteDataSource] خطا در ذخیره برنامه: ${e.message}")
+            throw e
         }
     }
 

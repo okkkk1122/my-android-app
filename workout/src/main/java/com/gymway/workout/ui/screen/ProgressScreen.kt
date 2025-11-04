@@ -15,20 +15,17 @@ import com.gymway.workout.viewmodel.WorkoutViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class) // این خط رو اضافه کن
 @Composable
 fun ProgressScreen(
     workoutViewModel: WorkoutViewModel,
     userId: String,
     onBack: () -> Unit
 ) {
-    println("🔄 [ProgressScreen] کامپوز شدن - userId: $userId")
+    println("🎯 [ProgressScreen] کامپوز شدن - userId: $userId")
 
-    val progressHistory = workoutViewModel.progressHistory.collectAsState().value
-    val isLoading = workoutViewModel.isLoading.collectAsState().value
-    val errorMessage = workoutViewModel.errorMessage.collectAsState().value
-
-    println("📊 [ProgressScreen] وضعیت: isLoading=$isLoading, progressHistory=${progressHistory.size}")
+    val progressHistory by workoutViewModel.progressHistory.collectAsState()
+    val isLoading by workoutViewModel.isLoading.collectAsState()
 
     LaunchedEffect(userId) {
         println("🎯 [ProgressScreen] LaunchedEffect اجرا شد")
@@ -38,13 +35,10 @@ fun ProgressScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = {
-                    Text("پیشرفت من")
-                    println("🎯 [ProgressScreen] TopAppBar کامپوز شد")
-                },
+                title = { Text("پیشرفت من") },
                 navigationIcon = {
                     IconButton(onClick = {
-                        println("🔙 [ProgressScreen] کاربر دکمه back را زد")
+                        println("🔙 [ProgressScreen] بازگشت")
                         onBack()
                     }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "بازگشت")
@@ -55,7 +49,7 @@ fun ProgressScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    println("➕ [ProgressScreen] کاربر ایجاد پیشرفت جدید را زد")
+                    println("➕ [ProgressScreen] ایجاد پیشرفت جدید")
                     workoutViewModel.createSampleProgress(userId)
                 }
             ) {
@@ -63,22 +57,23 @@ fun ProgressScreen(
             }
         }
     ) { padding ->
-        println("🎨 [ProgressScreen] Scaffold content کامپوز شد")
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
         ) {
             if (isLoading) {
-                println("⏳ [ProgressScreen] نمایش حالت loading")
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .weight(1f),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator()
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("در حال بارگذاری تاریخچه...")
+                    }
                 }
             } else {
                 Column(
@@ -87,20 +82,19 @@ fun ProgressScreen(
                         .padding(16.dp)
                 ) {
                     // آمار کلی
-                    println("📈 [ProgressScreen] نمایش آمار کلی")
                     ProgressStats(progressHistory = progressHistory)
 
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Text(
                         text = "تاریخچه پیشرفت",
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(bottom = 8.dp)
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
 
                     if (progressHistory.isEmpty()) {
-                        println("📭 [ProgressScreen] نمایش حالت خالی")
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -108,7 +102,12 @@ fun ProgressScreen(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            Text("📊", style = MaterialTheme.typography.headlineLarge)
+                            Icon(
+                                Icons.Default.Assessment,
+                                contentDescription = "بدون داده",
+                                modifier = Modifier.size(64.dp),
+                                tint = MaterialTheme.colorScheme.outline
+                            )
                             Spacer(modifier = Modifier.height(16.dp))
                             Text("داده‌ای برای نمایش وجود ندارد")
                             Text(
@@ -118,7 +117,6 @@ fun ProgressScreen(
                             )
                         }
                     } else {
-                        println("📋 [ProgressScreen] نمایش ${progressHistory.size} رکورد")
                         LazyColumn(
                             modifier = Modifier.weight(1f),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -136,8 +134,6 @@ fun ProgressScreen(
 
 @Composable
 fun ProgressStats(progressHistory: List<com.gymway.workout.data.model.WorkoutProgress>) {
-    println("📊 [ProgressStats] کامپوز شدن - ${progressHistory.size} رکورد")
-
     val latestProgress = progressHistory.lastOrNull()
 
     Card(
@@ -177,8 +173,6 @@ fun ProgressStats(progressHistory: List<com.gymway.workout.data.model.WorkoutPro
 
 @Composable
 fun ProgressStatItem(value: String, label: String) {
-    println("📈 [ProgressStatItem] کامپوز شدن: $value - $label")
-
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.width(80.dp)
@@ -199,8 +193,6 @@ fun ProgressStatItem(value: String, label: String) {
 
 @Composable
 fun ProgressItem(progress: com.gymway.workout.data.model.WorkoutProgress) {
-    println("📄 [ProgressItem] کامپوز شدن: ${progress.id}")
-
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(2.dp)
@@ -283,7 +275,11 @@ fun ProgressDetailStat(value: String, label: String) {
 }
 
 fun formatDate(timestamp: com.google.firebase.Timestamp): String {
-    val date = timestamp.toDate()
-    val formatter = SimpleDateFormat("yyyy/MM/dd - HH:mm", Locale("fa", "IR"))
-    return formatter.format(date)
+    return try {
+        val date = timestamp.toDate()
+        val formatter = SimpleDateFormat("yyyy/MM/dd - HH:mm", Locale("fa", "IR"))
+        formatter.format(date)
+    } catch (e: Exception) {
+        "تاریخ نامعتبر"
+    }
 }

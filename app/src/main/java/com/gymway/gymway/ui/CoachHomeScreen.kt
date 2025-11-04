@@ -1,5 +1,6 @@
 package com.gymway.gymway.ui
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -9,15 +10,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.gymway.auth.model.User
+import com.gymway.gymway.navigation.Routes
+
+private const val TAG = "CoachHomeScreen"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CoachHomeScreen(
     currentUser: User?,
     onLogout: () -> Unit,
-    onNavigateToProfile: () -> Unit
+    onNavigateToProfile: () -> Unit,
+    onNavigateToCoachDashboard: () -> Unit,
+    navController: NavController // اضافه کردن navController
 ) {
+    Log.d(TAG, "کامپوز شدن CoachHomeScreen")
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -37,14 +46,20 @@ fun CoachHomeScreen(
             ) {
                 // دکمه پروفایل
                 FloatingActionButton(
-                    onClick = onNavigateToProfile
+                    onClick = {
+                        Log.d(TAG, "کلیک روی پروفایل")
+                        onNavigateToProfile()
+                    }
                 ) {
                     Icon(Icons.Default.Person, contentDescription = "پروفایل")
                 }
 
                 // دکمه خروج
                 ExtendedFloatingActionButton(
-                    onClick = onLogout,
+                    onClick = {
+                        Log.d(TAG, "کلیک روی خروج")
+                        onLogout()
+                    },
                     icon = {
                         Icon(
                             Icons.Default.ExitToApp,
@@ -101,7 +116,10 @@ fun CoachHomeScreen(
 
             // امکانات مخصوص مربیان
             Card(
-                onClick = { /* TODO: Navigate to athletes list */ },
+                onClick = {
+                    Log.d(TAG, "کلیک روی مدیریت شاگردان")
+                    navController.navigate(Routes.COACH_DASHBOARD)
+                },
                 modifier = Modifier.fillMaxWidth(),
                 elevation = CardDefaults.cardElevation(4.dp)
             ) {
@@ -133,7 +151,10 @@ fun CoachHomeScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             Card(
-                onClick = { /* TODO: Navigate to workout plans */ },
+                onClick = {
+                    Log.d(TAG, "کلیک روی طراحی برنامه تمرینی")
+                    navController.navigate(Routes.CREATE_WORKOUT)
+                },
                 modifier = Modifier.fillMaxWidth(),
                 elevation = CardDefaults.cardElevation(4.dp)
             ) {
@@ -165,7 +186,11 @@ fun CoachHomeScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             Card(
-                onClick = { /* TODO: Navigate to analytics */ },
+                onClick = {
+                    Log.d(TAG, "کلیک روی آنالیز پیشرفت")
+                    // می‌تواند به صفحه آمار کلی برود
+                    navController.navigate(Routes.COACH_ATHLETES)
+                },
                 modifier = Modifier.fillMaxWidth(),
                 elevation = CardDefaults.cardElevation(4.dp)
             ) {
@@ -192,6 +217,18 @@ fun CoachHomeScreen(
                         )
                     }
                 }
+            }
+
+            // دکمه تست Navigation
+            Spacer(modifier = Modifier.height(24.dp))
+            Button(
+                onClick = {
+                    Log.d(TAG, "تست مستقیم Navigation به CoachDashboard")
+                    navController.navigate(Routes.COACH_DASHBOARD)
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("تست مستقیم - مدیریت شاگردان")
             }
         }
     }
